@@ -68,7 +68,7 @@ void MainWindow::requestFinished(QNetworkReply * reply)
         // Add title
         QListWidgetItem * item_widget = new QListWidgetItem;
         item_widget->setData(Qt::UserRole, i);
-        item_widget->setText('"' + title + '"\n'); // + "\n\n" + description
+        item_widget->setText('"' + title + "\"\n"); // + "\n\n" + description
 
         list->addItem(item_widget);
     }
