@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->tabBar()->setDocumentMode(true);
 
-    // Connect tab changed signal to its slot
+    // Connect tab changed signal to its slot | (object, signal, object, slot)
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::currentTabChanged);
     MainWindow::currentTabChanged(ui->tabWidget->currentIndex());
 
@@ -22,6 +22,32 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+void MainWindow::linkClicked(QListWidgetItem * item)
+{
+    // Get current tab
+    QWidget * tab = ui->tabWidget->widget(ui->tabWidget->currentIndex());
+
+    // Get text browser
+    QTextBrowser * browser = tab->findChild<QTextBrowser*>();
+
+    // Get URL
+    auto item_object = this->items.at(item->data(Qt::UserRole).toInt()).toObject();
+
+    // Set text to text browser
+    browser->setHtml("<h2>" + item_object.value("title").toString() + "</h2>" + "<hr><br>" + item_object.value("html").toString());
+
+    // Show message
+    ui->statusBar->showMessage("✔️ Loaded successfully.", 1500);
+}
+
+void MainWindow::currentTabChanged(int index)
+{
+    // Get widget
+    QWidget * widget = ui->tabWidget->widget(index);
+
+    // Load from API
+    MainWindow::requestTo(QUrl("https://tridectet.ir/api/" + widget->objectName().toLower()));
 }
 
 void MainWindow::requestTo(QUrl url)
@@ -41,6 +67,10 @@ void MainWindow::requestTo(QUrl url)
     connect(manager, &QNetworkAccessManager::finished, this, &MainWindow::requestFinished);
 }
 
+/**
+ * @param {reply} Finished request reply memory address.
+ * @return void
+ */
 void MainWindow::requestFinished(QNetworkReply * reply)
 {
     //QNetworkReply * reply = qobject_cast<QNetworkReply*>(sender());
@@ -68,35 +98,10 @@ void MainWindow::requestFinished(QNetworkReply * reply)
         // Add title
         QListWidgetItem * item_widget = new QListWidgetItem;
         item_widget->setData(Qt::UserRole, i);
+        item_widget->setTextAlignment(Qt::AlignRight);
+        item_widget->setToolTip(description);
         item_widget->setText('"' + title + "\"\n"); // + "\n\n" + description
 
         list->addItem(item_widget);
     }
-}
-
-void MainWindow::linkClicked(QListWidgetItem * item)
-{
-    // Get current tab
-    QWidget * tab = ui->tabWidget->widget(ui->tabWidget->currentIndex());
-
-    // Get text browser
-    QTextBrowser * browser = tab->findChild<QTextBrowser*>();
-
-    // Get URL
-    auto item_object = this->items.at(item->data(Qt::UserRole).toInt()).toObject();
-
-    // Set text to text browser
-    browser->setHtml("<h2>" + item_object.value("title").toString() + "</h2>" + "<hr><br>" + item_object.value("html").toString());
-
-    // Show message
-    ui->statusBar->showMessage("✔️ Loaded successfully.", 1500);
-}
-
-void MainWindow::currentTabChanged(int index)
-{
-    // Get widget
-    QWidget * widget = ui->tabWidget->widget(index);
-
-    // Load from API
-    MainWindow::requestTo(QUrl("https://tridectet.ir/api/" + widget->objectName().toLower()));
 }
